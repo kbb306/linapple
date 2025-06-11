@@ -573,189 +573,85 @@ void FrameSaveBMP(void) {
   i++;
 }
 
-void ProcessButtonClick(int button, int mod)
-{
-  // button - number of button pressed (starting with 0, which means F1
-  // mod - what modifiers been set (like CTRL, ALT etc.)
-  SDL_Event qe;  // for Quitting and Reset
+// Frame.cpp - Telnet-compatible key remapping for LinApple
 
-  SoundCore_SetFade(FADE_OUT); // sound/music off?
+void ProcessButtonClick(int button, int /*mod*/) {
+    SDL_Event qe;
+    SoundCore_SetFade(FADE_OUT);
 
-  switch (button) {
-    case BTN_HELP:
-      FrameShowHelpScreen(screen->w, screen->h);
-      break;
+    switch (button) {
+        case 0: // F1 - Help
+            FrameShowHelpScreen(screen->w, screen->h);
+            break;
 
-    case BTN_RUN:  // F2 - Run that thing! Or Shift+2 ReloadConfig and run it anyway!
-      if ((mod & (KMOD_LCTRL)) == (KMOD_LCTRL) || (mod & (KMOD_RCTRL)) == (KMOD_RCTRL)) {
-        if (g_nAppMode == MODE_LOGO) {
-          DiskBoot();
-        } else if (g_nAppMode == MODE_RUNNING) {
-          ResetMachineState();
-        }
-        if ((g_nAppMode == MODE_DEBUG) || (g_nAppMode == MODE_STEPPING)) {
-          DebugEnd();
-        }
-        g_nAppMode = MODE_RUNNING;
-        DrawStatusArea(DRAW_TITLE);
-        VideoRedrawScreen();
-        g_bResetTiming = true;
-      } else if (mod & KMOD_SHIFT) {
-        restart = 1;  // Keep up flag of restarting
-        qe.type = SDL_QUIT;
-        SDL_PushEvent(&qe); // Push quit event
-      }
-      break;
+        case 1: // F2 - Cold reboot
+            ResetMachineState();
+            g_nAppMode = MODE_RUNNING;
+            DrawStatusArea(DRAW_TITLE);
+            VideoRedrawScreen();
+            g_bResetTiming = true;
+            break;
 
-    case BTN_DRIVE1:
-    case BTN_DRIVE2:
-      JoyReset();
-      if (mod & KMOD_CTRL) {
-        if (mod & KMOD_SHIFT) {
-          printf("HDD  Eject Drive #%d\n", (button - BTN_DRIVE1) + 1);
-          HD_Eject(button - BTN_DRIVE1);
-        } else {
-          printf("Disk Eject Drive #%d\n", (button - BTN_DRIVE1) + 1);
-          DiskEject(button - BTN_DRIVE1);
-        }
-        break;
-      }
+        case 2: // F3 - Reload config + reboot
+            restart = 1;
+            qe.type = SDL_QUIT;
+            SDL_PushEvent(&qe);
+            break;
 
-      if (mod & KMOD_SHIFT) {
-        if (mod & KMOD_ALT) {
-          HD_FTP_Select(button - BTN_DRIVE1);// select HDV image through FTP
-        } else {
-          HD_Select(button - BTN_DRIVE1);
-        }  // select HDV image from local disk
-      } else {
-        if (mod & KMOD_ALT) {
-          Disk_FTP_SelectImage(button - BTN_DRIVE1);//select through FTP
-        } else {
-          DiskSelect(button - BTN_DRIVE1);
-        } // select image file for appropriate disk drive(#1 or #2)
-      }
-      break;
+        case 3: // F4 - Hot reset
+            if (!IS_APPLE2) MemResetPaging();
+            DiskReset();
+            KeybReset();
+            if (!IS_APPLE2) VideoResetState();
+            MB_Reset();
+            CpuReset();
+            break;
 
-    case BTN_DRIVESWAP:  // F5 - swap disk drives
-      DiskDriveSwap();
-      break;
+        case 4: // F5 - Quit
+            qe.type = SDL_QUIT;
+            SDL_PushEvent(&qe);
+            break;
 
-    case BTN_FULLSCR:  // F6 - Fullscreen on/off
-      if (mod & KMOD_SHIFT) {
-         // only IIe and enhanced have a keyboard rocker switch (and only non-US keyboards)
-         if ((g_KeyboardLanguage != English_US)&&
-             ((g_Apple2Type == A2TYPE_APPLE2E)||(g_Apple2Type == A2TYPE_APPLE2EEHANCED)))
-         {
-           g_KeyboardRockerSwitch = !g_KeyboardRockerSwitch;
-           printf("Toggling keyboard rocker switch. Selected character set: %s...\n", (g_KeyboardRockerSwitch) ? "local" : "standard/US");
-         }
-      }
-      else
-      {
-        if (fullscreen) {
-          fullscreen = 0;
-          SetNormalMode();
-        } else {
-          fullscreen = 1;
-          SetFullScreenMode();
-        }
-        JoyReset();   // GPH: Sometimes lose ability to use buttons after switch
-      }
-      break;
+        case 5: // F6 - Load disk 1
+            JoyReset();
+            DiskSelect(0);
+            break;
 
-    case BTN_DEBUG:  // F7 - debug mode - not implemented yet? Please, see README about it. --bb
-      if (g_nAppMode != MODE_DEBUG)
-      {
-        DebugBegin();
-        SetUsingCursor(0);
-      }
-      else
-      if (g_nAppMode == MODE_DEBUG)
-      {
-        g_nAppMode = MODE_RUNNING;
-      }
-      break;
+        case 6: // F7 - Load disk 2
+            JoyReset();
+            DiskSelect(1);
+            break;
 
-    case BTN_SETUP:  // setup is in conf file - linapple.conf.
-      // may be it should be implemented using SDL??? 0_0 --bb
-      // Now Shift-F8 save settings changed run-tme in linapple.conf
-      // F8 - save current screen as a .bmp file
-      // Currently these setting are just next:
-      if (mod & KMOD_SHIFT) {
-        RegSaveValue(TEXT("Configuration"), TEXT("Video Emulation"), 1, g_videotype);
-        RegSaveValue(TEXT("Configuration"), TEXT("Emulation Speed"), 1, g_dwSpeed);
-        RegSaveValue(TEXT("Configuration"), TEXT("Fullscreen"), 1, fullscreen);
-      } else {
-        FrameSaveBMP();
-      }
-      break;
+        case 7: // F8 - Attach HD 1
+            HD_Select(0);
+            break;
 
+        case 8: // F9 - Attach HD 2
+            HD_Select(1);
+            break;
 
-    // Buttons handlers for F9 - F12
-    case BTN_CYCLE: // F9 - CYCLE through allowed video modes
-      if (mod & KMOD_SHIFT) {
-        // GPH Added budget video for updating only every 12 60Hz frames.
-        // This is because, on computers without a fast GPU, the drawing of the screen
-        // can actually affect the audio.
-        SetBudgetVideo(!GetBudgetVideo());
-      } else {
-        g_videotype++;  // Cycle through available video modes
-        if (g_videotype >= VT_NUM_MODES) {
-          g_videotype = 0;
-        }
-        VideoReinitialize();
-        if (g_nAppMode != MODE_LOGO)
-        {
-          if (g_nAppMode == MODE_DEBUG)
-          {
-            unsigned int debugVideoMode;
-            if (DebugGetVideoMode(&debugVideoMode)) {
-              VideoRefreshScreen();
-            }
-          }
-          else
-          {
-            VideoRefreshScreen();
-          }
-        }
-      }
-      break;
-    case BTN_QUIT:  // F10 - exit from emulator?
-      qe.type = SDL_QUIT;
-      SDL_PushEvent(&qe); // Push quit event
-      break;  //
-    case BTN_SAVEST: // Save state (F11)
-      if (mod & KMOD_ALT) { // quick save
-        Snapshot_SaveState();
-      } else if (PSP_SaveStateSelectImage(true)) {
-        Snapshot_SaveState();
-      }
-      break;
-    case BTN_LOADST: // Load state (F12) or Hot Reset (Ctrl+F12)
-      if (mod & KMOD_CTRL) {
-        if (!IS_APPLE2) {
-          MemResetPaging();
-        }
+        case 9: // F10 - Eject disk 1
+            DiskEject(0);
+            break;
 
-        DiskReset();
-        KeybReset();
-        if (!IS_APPLE2) {
-          VideoResetState();
-        }  // Switch Alternate char set off
-        MB_Reset();
-        CpuReset();
-      } else if (mod & KMOD_ALT) { // quick load state
-        Snapshot_LoadState();
-      } else if (PSP_SaveStateSelectImage(false)) {
-        Snapshot_LoadState();
-      }
-      break;
-  }
+        case 10: // F11 - Eject disk 2
+            DiskEject(1);
+            break;
 
-  if ((g_nAppMode != MODE_DEBUG) && (g_nAppMode != MODE_PAUSED)) {
-    SoundCore_SetFade(FADE_IN);
-  }
+        case 11: // F12 - Eject both HDs
+            HD_Eject(0);
+            HD_Eject(1);
+            break;
+
+        default:
+            break;
+    }
+
+    if ((g_nAppMode != MODE_DEBUG) && (g_nAppMode != MODE_PAUSED)) {
+        SoundCore_SetFade(FADE_IN);
+    }
 }
+
 
 void ResetMachineState() {
   DiskReset();    // Set floppymotoron=0
