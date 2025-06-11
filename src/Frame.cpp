@@ -385,6 +385,24 @@ void FrameDispatchMessage(SDL_Event *e) {// process given SDL event
           JoyUpdateTrimViaKey(mysym);
         } else {
           // Regular joystick movement
+          if (buttondown == -1) {
+            switch (mysym) {
+                case SDLK_y: ProcessButtonClick(0, 0); break; // Help
+                case SDLK_r: ProcessButtonClick(1, 0); break; // Cold reboot
+                case SDLK_c: ProcessButtonClick(2, 0); break; // Reload config
+                case SDLK_x: ProcessButtonClick(3, 0); break; // Hot reset
+                case SDLK_z: ProcessButtonClick(4, 0); break; // Quit
+                case SDLK_2: ProcessButtonClick(5, 0); break; // Load disk 1
+                case SDLK_3: ProcessButtonClick(6, 0); break; // Load disk 2
+                case SDLK_4: ProcessButtonClick(7, 0); break; // Attach HD 1
+                case SDLK_5: ProcessButtonClick(8, 0); break; // Attach HD 2
+                case SDLK_6: ProcessButtonClick(9, 0); break; // Eject disk 1
+                case SDLK_7: ProcessButtonClick(10, 0); break; // Eject disk 2
+                case SDLK_e: ProcessButtonClick(11, 0); break; // Eject all HDs
+                break;
+            }
+        }
+
           if ((!JoyProcessKey(mysym, extended, true, autorep)) && (g_nAppMode != MODE_LOGO)) {
             KeybQueueKeypress(mysym, NOT_ASCII);
           }
