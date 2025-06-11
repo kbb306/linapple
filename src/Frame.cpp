@@ -155,32 +155,23 @@ void DrawStatusArea(int drawflags)
 
 void FrameShowHelpScreen(int sx, int sy) // sx, sy - sizes of current window (screen)
 {
-  const int MAX_LINES = 25;
-  const char *HelpStrings[MAX_LINES] = {"Welcome to LinApple - Apple][ emulator for Linux!",
-                                        "Conf file is linapple.conf in current directory by default",
-                                        "Hugest archive of Apple][ stuff you can find at ftp.apple.asimov.net",
-                                        "       F1 - Show help screen",
-                                        "  Ctrl+F2 - Cold reboot (Power off and back on)",
-                                        " Shift+F2 - Reload configuration file and cold reboot",
-                                        " Ctrl+F10 - Hot Reset (Control+Reset)",
-                                        "      F12 - Quit",
-                                        "",
-                                        "    F3/F4 - Load floppy disk 1/2 (Slot 6, Drive 1/2)",
-                                        "       F5 - Swap floppy disks",
-                                        " Shift+F3/F4 - Attach hard drive 1/2 (Slot 7, Drive 1/2)",
-                                        "",
-                                        "       F6 - Toggle fullscreen mode",
-                                        " Shift+F6 - Toggle character set (keyboard rocker switch)",
-                                        "       F7 - Toggle debugging view",
-                                        "       F8 - Take screenshot",
-                                        " Shift+F8 - Save runtime changes to configuration file",
-                                        "       F9 - Cycle through various video modes",
-                                        " Shift+F9 - Budget video, for smoother music/audio",
-                                        "  F10/F11 - Load/save snapshot file",
-                                        "",
-                                        "       Pause - Pause/resume emulator",
-                                        " Scroll Lock - Toggle full speed",
-                                        "  Numpad +/-/* - Increase/Decrease/Normal speed"};
+  const char* HelpStrings[] = {
+    "Y - Show emulator help",
+    "R - Cold reboot (Power off and back on)",
+    "C - Reload config and cold reboot",
+    "X - Hot reset (Control+Reset)",
+    "Z - Quit emulator",
+    "",
+    "2/3 - Load floppy disk 1/2 (Slot 6, Drive 1/2)",
+    "4/5 - Attach hard drive 1/2 (Slot 7, Drive 1/2)",
+    "6/7 - Eject floppy disk 1/2",
+    "E   - Eject both hard drives",
+    "",
+    "Pause       - Pause/resume emulator",
+    "Scroll Lock - Toggle full speed",
+    "Numpad +/-/* - Increase/Decrease/Normal speed",
+    NULL
+};
 
   SDL_Surface *my_screen; // for background
   SDL_Surface *tempSurface = NULL; // temporary surface
