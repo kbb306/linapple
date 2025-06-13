@@ -155,7 +155,8 @@ void DrawStatusArea(int drawflags)
 
 void FrameShowHelpScreen(int sx, int sy) // sx, sy - sizes of current window (screen)
 {
-  const char* HelpStrings[] = {
+  const int MAX_LINES = 25;
+  const char* HelpStrings[MAX_LINES] = {
     "Y - Show emulator help",
     "R - Cold reboot (Power off and back on)",
     "C - Reload config and cold reboot",
